@@ -4,6 +4,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from requests import get, post
 from bs4 import BeautifulSoup
+from ssdpy import SSDPClient
 
 class Window(Gtk.Window):
     def __init__(self):
@@ -122,8 +123,8 @@ class Window(Gtk.Window):
             dialog.destroy()
             return
 
-        post(f"http://{device_id}:8060/keypress/{value}")
-        print(f"Sent {value}")
+        post(device_id + "/keypress/" + value)
+        print("Sent " + value)
 
     def power(self, button):
         global device_id
@@ -133,7 +134,7 @@ class Window(Gtk.Window):
             dialog.destroy()
             return
 
-        info = get(f"http://{device_id}:8060/query/device-info").text
+        info = get(device_id + "/query/device-info").text
         soup = BeautifulSoup(info, "html.parser")
         mode = soup.find('power-mode').string
         if mode == "Ready":
@@ -155,27 +156,16 @@ class Window(Gtk.Window):
 
     def discover_devices(self, button, combo, label1, label2):
         global search_id
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.connect(("1.1.1.1", 80))
-        local = sock.getsockname()[0]
-        sock.close()
-        sub = local.rsplit('.', 1)[0]
+        search = SSDPClient().m_search("roku:ecp")
 
         devices = {}
-        for i in range(256):
-            ip = sub + f".{i}"
-            try:
-                info = get(f"http://{ip}:8060/query/device-info", timeout=0.069).text
-            except:
-                continue
+        for device in search:
+            id = device['location']
+            info = get(id + "/query/device-info").text
             soup = BeautifulSoup(info, "html.parser")
             name = soup.find('user-device-name').string
-            if name:
-                print(f"Found {name} at {ip}")
-                devices[name] = ip
-
-        for device in devices:
-            combo.append(devices[device], device)
+            print(f"Found {name} at {id[7:-6]}")
+            combo.append(id, name)
         combo.set_active(0)
         button.set_label("Connect")
         button.disconnect(search_id)
@@ -184,13 +174,13 @@ class Window(Gtk.Window):
     def connect_device(self, button, combo, label1, label2):
         global device_id
         device_id = combo.get_active_id()
-        info = get(f"http://{device_id}:8060/query/device-info").text
+        info = get(device_id + "/query/device-info").text
         soup = BeautifulSoup(info, "html.parser")
 
         list = {}
         list['Name'] = soup.find('user-device-name').string
-        list['IP Address'] = device_id
-        print(f"Connected to {device_id} ({list['Name']})")
+        list['IP Address'] = device_id[7:-6]
+        print(f"Connected to {list['IP Address']} ({list['Name']})")
         list['Model'] = soup.find('friendly-model-name').string
         list['Serial Number'] = soup.find('serial-number').string
         list['Resolution'] = soup.find('ui-resolution').string
@@ -203,8 +193,8 @@ class Window(Gtk.Window):
         string1 = "\n\n"
         string2 = "\n\n"
         for thing in list:
-            string1 += f"<b>{thing}:</b>\n"
-            string2 += f"{list[thing]}\n"
+            string1 += "<b>" + thing + ":</b>\n"
+            string2 += list[thing] + "\n"
         label1.set_markup(string1)
         label2.set_markup(string2)
 
