@@ -2,6 +2,7 @@ import socket
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from sys import argv
 from requests import get, post
 from bs4 import BeautifulSoup
 from ssdpy import SSDPClient
@@ -9,30 +10,39 @@ from ssdpy import SSDPClient
 class Window(Gtk.Window):
     def __init__(self):
         global device_id
-        device_id = ""
         global search_id
+
+        if len(argv) >= 2:
+            device_id = f"http://{argv[1]}:8060"
+        else:
+            device_id = ""
 
         super().__init__(title="Controku")
         self.set_border_width(10)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.add(vbox)
+        if device_id == "":
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            self.add(vbox)
 
-        stack = Gtk.Stack()
-        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        stack.set_transition_duration(420)
+            stack = Gtk.Stack()
+            stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+            stack.set_transition_duration(420)
 
-        con_grid = Gtk.Grid()
-        stack.add_titled(con_grid, "connection", "Connection")
+            con_grid = Gtk.Grid()
+            stack.add_titled(con_grid, "connection", "Connection")
 
-        rem_grid = Gtk.Grid()
-        stack.add_titled(rem_grid, "remote", "Remote")
+            rem_grid = Gtk.Grid()
+            stack.add_titled(rem_grid, "remote", "Remote")
 
-        stack_switcher = Gtk.StackSwitcher()
-        stack_switcher.set_stack(stack)
+            stack_switcher = Gtk.StackSwitcher()
+            stack_switcher.set_stack(stack)
 
-        vbox.pack_start(stack_switcher, True, True, 0)
-        vbox.pack_start(stack, True, True, 0)
+            vbox.pack_start(stack_switcher, True, True, 0)
+            vbox.pack_start(stack, True, True, 0)
+        else:
+            rem_grid = Gtk.Grid()
+            self.add(rem_grid)
+            con_grid = Gtk.Grid()
 
         button = Gtk.Button.new_with_label("Keyboard")
         button.connect("clicked", self.keyboard)
