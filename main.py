@@ -4,6 +4,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from sys import argv
 from requests import get, post
+from urllib.parse import quote
 from bs4 import BeautifulSoup
 from ssdpy import SSDPClient
 
@@ -20,6 +21,9 @@ class Window(Gtk.Window):
         super().__init__(title="Controku")
         self.set_border_width(10)
 
+        con_grid = Gtk.Grid()
+        rem_grid = Gtk.Grid()
+        rem_grid.connect("key-press-event", self.keypress)
         if device_id == "":
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             self.add(vbox)
@@ -28,10 +32,7 @@ class Window(Gtk.Window):
             stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
             stack.set_transition_duration(420)
 
-            con_grid = Gtk.Grid()
             stack.add_titled(con_grid, "connection", "Connection")
-
-            rem_grid = Gtk.Grid()
             stack.add_titled(rem_grid, "remote", "Remote")
 
             stack_switcher = Gtk.StackSwitcher()
@@ -40,9 +41,7 @@ class Window(Gtk.Window):
             vbox.pack_start(stack_switcher, True, True, 0)
             vbox.pack_start(stack, True, True, 0)
         else:
-            rem_grid = Gtk.Grid()
             self.add(rem_grid)
-            con_grid = Gtk.Grid()
 
         button = Gtk.Button.new_with_label("Keyboard")
         button.connect("clicked", self.keyboard)
@@ -162,7 +161,51 @@ class Window(Gtk.Window):
             dialog.destroy()
             return
 
+        keyboard = Keyboard(self)
         print("Opened keyboard")
+        keyboard.run()
+        keyboard.destroy()
+
+    def keypress(self, widget, key):
+        match key.keyval:
+            case 65288:
+                value = "Back"
+            case 65307:
+                value = "Back"
+            case 104:
+                value = "Home"
+            case 105:
+                value = "Info"
+            case 65361:
+                value = "Left"
+            case 65362:
+                value = "Up"
+            case 65363:
+                value = "Right"
+            case 65364:
+                value = "Down"
+            case 65293:
+                value = "Select"
+            case 32:
+                value = "Select"
+            case 111:
+                value = "Select"
+            case 115:
+                value = "Select"
+            case 114:
+                value = "Rev"
+            case 112:
+                value = "Play"
+            case 102:
+                value = "Fwd"
+            case 109:
+                value = "VolumeMute"
+            case 91:
+                value = "VolumeDown"
+            case 93:
+                value = "VolumeUp"
+
+        self.send_button(self, value)
 
     def discover_devices(self, button, combo, label1, label2):
         global search_id
@@ -219,6 +262,26 @@ class Dialog(Gtk.Dialog):
         box = self.get_content_area()
         box.add(label)
         self.show_all()
+
+class Keyboard(Gtk.Dialog):
+    def __init__(self, parent):
+        super().__init__(title="Roku Keyboard", transient_for=parent, flags=0)
+
+        entry = Gtk.Entry()
+        entry.connect("key-press-event", self.send_key, parent)
+
+        box = self.get_content_area()
+        box.add(entry)
+        self.show_all()
+
+    def send_key(self, entry, key, parent):
+        if quote(key.string) == "%08":
+            parent.send_button(parent, "Backspace")
+        elif quote(key.string) == "%0D":
+            parent.send_button(parent, "Enter")
+            self.destroy()
+        elif quote(key.string) != "":
+            parent.send_button(parent, "Lit_" + quote(key.string))
 
 window = Window()
 window.connect("destroy", Gtk.main_quit)

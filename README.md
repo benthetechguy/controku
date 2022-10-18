@@ -8,5 +8,4 @@ Controku allows you to control Roku devices from your own desktop with a slick G
 
 ## To Do
 * Config file to remember Roku devices on network
-* Make keyboard button actually functional
 * Clean up UI
