@@ -1,12 +1,13 @@
-import socket
+#!/usr/bin/env python3
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
-from sys import argv
 from requests import get, post
-from urllib.parse import quote
-from bs4 import BeautifulSoup
 from ssdpy import SSDPClient
+from sys import argv
+from urllib.parse import quote
+from xml.etree import ElementTree
 
 class Window(Gtk.Window):
     def __init__(self):
@@ -47,7 +48,7 @@ class Window(Gtk.Window):
         button.connect("clicked", self.keyboard)
         rem_grid.attach(button, 0, 0, 2, 1)
 
-        button = Gtk.Button.new_with_label("⏻")
+        button = Gtk.Button.new_from_icon_name("system-shutdown-symbolic", 4)
         button.connect("clicked", self.power)
         rem_grid.attach(button, 2, 0, 1, 1)
 
@@ -83,7 +84,7 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "Select")
         rem_grid.attach(button, 1, 3, 1, 1)
 
-        button = Gtk.Button.new_with_label("⏪")
+        button = Gtk.Button.new_from_icon_name("media-seek-backward-symbolic", 4)
         button.connect("clicked", self.send_button, "Rev")
         rem_grid.attach(button, 0, 5, 1, 1)
 
@@ -91,19 +92,19 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "Play")
         rem_grid.attach(button, 1, 5, 1, 1)
 
-        button = Gtk.Button.new_with_label("⏩")
+        button = Gtk.Button.new_from_icon_name("media-seek-forward-symbolic", 4)
         button.connect("clicked", self.send_button, "Fwd")
         rem_grid.attach(button, 2, 5, 1, 1)
 
-        button = Gtk.Button.new_with_label("🔇")
+        button = Gtk.Button.new_from_icon_name("audio-volume-muted-symbolic", 4)
         button.connect("clicked", self.send_button, "VolumeMute")
         rem_grid.attach(button, 0, 6, 1, 1)
 
-        button = Gtk.Button.new_with_label("🔉")
+        button = Gtk.Button.new_from_icon_name("audio-volume-low-symbolic", 4)
         button.connect("clicked", self.send_button, "VolumeDown")
         rem_grid.attach(button, 1, 6, 1, 1)
 
-        button = Gtk.Button.new_with_label("🔊")
+        button = Gtk.Button.new_from_icon_name("audio-volume-high-symbolic", 4)
         button.connect("clicked", self.send_button, "VolumeUp")
         rem_grid.attach(button, 2, 6, 1, 1)
 
@@ -144,14 +145,15 @@ class Window(Gtk.Window):
             return
 
         info = get(device_id + "/query/device-info").text
-        soup = BeautifulSoup(info, "html.parser")
-        mode = soup.find('power-mode').string
-        if mode == "Ready":
-            self.send_button(button, "PowerOn")
-        elif mode == "PowerOn":
-            self.send_button(button, "PowerOff")
-        else:
-            print("Current power status not supported!")
+        tree = ElementTree.fromstring(info)
+        mode = tree.findtext('power-mode')
+        match mode:
+            case "Ready":
+                self.send_button(button, "PowerOn")
+            case "PowerOn":
+                self.send_button(button, "PowerOff")
+            case _:
+                print("Current power status not supported!")
 
     def keyboard(self, button):
         global device_id
@@ -215,8 +217,8 @@ class Window(Gtk.Window):
         for device in search:
             id = device['location']
             info = get(id + "/query/device-info").text
-            soup = BeautifulSoup(info, "html.parser")
-            name = soup.find('user-device-name').string
+            tree = ElementTree.fromstring(info)
+            name = tree.findtext('user-device-name')
             print(f"Found {name} at {id[7:-6]}")
             combo.append(id, name)
         combo.set_active(0)
@@ -228,25 +230,25 @@ class Window(Gtk.Window):
         global device_id
         device_id = combo.get_active_id()
         info = get(device_id + "/query/device-info").text
-        soup = BeautifulSoup(info, "html.parser")
+        tree = ElementTree.fromstring(info)
 
         list = {}
-        list['Name'] = soup.find('user-device-name').string
+        list['Name'] = tree.findtext('user-device-name')
         list['IP Address'] = device_id[7:-6]
         print(f"Connected to {list['IP Address']} ({list['Name']})")
-        list['Model'] = soup.find('friendly-model-name').string
-        list['Serial Number'] = soup.find('serial-number').string
-        list['Resolution'] = soup.find('ui-resolution').string
-        list['Software'] = soup.find('software-version').string
-        if soup.find('power-mode').string == "Ready":
+        list['Model'] = tree.findtext('friendly-model-name')
+        list['Serial Number'] = tree.findtext('serial-number')
+        list['Resolution'] = tree.findtext('ui-resolution')
+        list['Software'] = tree.findtext('software-version')
+        if tree.findtext('power-mode') == "Ready":
             list['Power'] = "Off"
-        elif soup.find('power-mode').string == "PowerOn":
+        elif tree.findtext('power-mode') == "PowerOn":
             list['Power'] = "On"
 
         string1 = "\n\n"
         string2 = "\n\n"
         for thing in list:
-            string1 += "<b>" + thing + ":</b>\n"
+            string1 += f"<b>{thing}:</b>\n"
             string2 += list[thing] + "\n"
         label1.set_markup(string1)
         label2.set_markup(string2)
