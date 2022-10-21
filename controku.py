@@ -29,9 +29,8 @@ class Window(Gtk.Window):
         except Exception:
             basepath = path.abspath(".")
 
-        # abosolute path of images folder to add custom icons
-        fullpath = path.join(basepath, "images")
-        Gtk.IconTheme.get_default().append_search_path(fullpath)
+        Gtk.IconTheme.get_default().append_search_path(path.join(basepath, "images"))
+        self.set_icon_from_file(path.join(basepath, "images/controku.png"))
 
         con_grid = Gtk.Grid()
         rem_grid = Gtk.Grid()

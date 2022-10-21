@@ -1,3 +1,5 @@
+![Banner](images/controku-banner.png#gh-dark-mode-only)
+![Banner](images/controku-banner-inverted.png#gh-light-mode-only)
 Controku allows you to control Roku devices from your own desktop with a slick GTK3 interface, written in Python.
 
 ![Remote UI](images/remote.png)
