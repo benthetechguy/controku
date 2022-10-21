@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import gi
+import sys
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from os import path
 from requests import get, post
 from ssdpy import SSDPClient
-from sys import argv
 from urllib.parse import quote
 from xml.etree import ElementTree
 
@@ -14,13 +15,23 @@ class Window(Gtk.Window):
         global device_id
         global search_id
 
-        if len(argv) >= 2:
-            device_id = f"http://{argv[1]}:8060"
+        if len(sys.argv) >= 2:
+            device_id = f"http://{sys.argv[1]}:8060"
         else:
             device_id = ""
 
         super().__init__(title="Controku")
         self.set_border_width(10)
+
+        # pyinstaller puts relative path in _MEIPASS; detect if running under pyinstaller
+        try:
+            basepath = sys._MEIPASS
+        except Exception:
+            basepath = path.abspath(".")
+
+        # abosolute path of images folder to add custom icons
+        fullpath = path.join(basepath, "images")
+        Gtk.IconTheme.get_default().append_search_path(fullpath)
 
         con_grid = Gtk.Grid()
         rem_grid = Gtk.Grid()
@@ -44,9 +55,13 @@ class Window(Gtk.Window):
         else:
             self.add(rem_grid)
 
-        button = Gtk.Button.new_with_label("Keyboard")
+        button = Gtk.Button.new_from_icon_name("input-keyboard-symbolic", 4)
         button.connect("clicked", self.keyboard)
-        rem_grid.attach(button, 0, 0, 2, 1)
+        rem_grid.attach(button, 0, 0, 1, 1)
+
+        button = Gtk.Button.new_from_icon_name("refresh-symbolic", 4)
+        button.connect("clicked", self.send_button, "InstantReplay")
+        rem_grid.attach(button, 1, 0, 1, 1)
 
         button = Gtk.Button.new_from_icon_name("system-shutdown-symbolic", 4)
         button.connect("clicked", self.power)
@@ -56,7 +71,7 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "Back")
         rem_grid.attach(button, 0, 1, 1, 1)
 
-        button = Gtk.Button.new_with_label("*")
+        button = Gtk.Button.new_with_label("Info")
         button.connect("clicked", self.send_button, "Info")
         rem_grid.attach(button, 1, 1, 1, 1)
 
@@ -64,19 +79,19 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "Home")
         rem_grid.attach(button, 2, 1, 1, 1)
 
-        button = Gtk.Button.new_with_label("▲")
+        button = Gtk.Button.new_from_icon_name("media-up-symbolic", 4)
         button.connect("clicked", self.send_button, "Up")
         rem_grid.attach(button, 1, 2, 1, 1)
 
-        button = Gtk.Button.new_with_label("▼")
+        button = Gtk.Button.new_from_icon_name("media-down-symbolic", 4)
         button.connect("clicked", self.send_button, "Down")
         rem_grid.attach(button, 1, 4, 1, 1)
 
-        button = Gtk.Button.new_with_label("◀")
+        button = Gtk.Button.new_from_icon_name("media-left-symbolic", 4)
         button.connect("clicked", self.send_button, "Left")
         rem_grid.attach(button, 0, 3, 1, 1)
 
-        button = Gtk.Button.new_with_label("▶")
+        button = Gtk.Button.new_from_icon_name("media-right-symbolic", 4)
         button.connect("clicked", self.send_button, "Right")
         rem_grid.attach(button, 2, 3, 1, 1)
 
@@ -88,7 +103,7 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "Rev")
         rem_grid.attach(button, 0, 5, 1, 1)
 
-        button = Gtk.Button.new_with_label("⏯")
+        button = Gtk.Button.new_from_icon_name("media-play-pause-symbolic", 4)
         button.connect("clicked", self.send_button, "Play")
         rem_grid.attach(button, 1, 5, 1, 1)
 
