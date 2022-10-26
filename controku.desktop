@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Controku
+Comment=Control Roku devices from the comfort of your own desktop
+Exec=controku
+Icon=controku
+Terminal=false
+Categories=AudioVideo;TV;GTK;
+Keywords=Roku;Remote;Control;TV;

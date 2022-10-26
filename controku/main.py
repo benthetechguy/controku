@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import gi
 import sys
 gi.require_version("Gtk", "3.0")
@@ -38,7 +36,7 @@ class Window(Gtk.Window):
         try:
             basepath = sys._MEIPASS
         except Exception:
-            basepath = path.abspath(".")
+            basepath = path.dirname(path.realpath(__file__))
 
         Gtk.IconTheme.get_default().append_search_path(path.join(basepath, "images"))
         self.set_icon_from_file(path.join(basepath, "images/controku.png"))
@@ -341,7 +339,11 @@ class Keyboard(Gtk.Dialog):
         elif quote(key.string) != "":
             parent.send_button(parent, "Lit_" + quote(key.string))
 
-window = Window()
-window.connect("destroy", Gtk.main_quit)
-window.show_all()
-Gtk.main()
+def main():
+    window = Window()
+    window.connect("destroy", Gtk.main_quit)
+    window.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()

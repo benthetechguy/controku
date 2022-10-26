@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "controku"
+version = "1.0.0"
+dependencies = [
+    "PyGObject",
+    "requests",
+    "appdirs",
+    "ssdpy",
+]
+authors = [ {name="Ben Westover", email="me@benthetechguy.net"}, ]
+description = "Control Roku devices from the comfort of your own desktop"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Environment :: X11 Applications :: GTK",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+]
+keywords = ["roku", "remote"]
+
+[project.urls]
+"Homepage" = "https://github.com/benthetechguy/controku"
+"Bug Tracker" = "https://github.com/benthetechguy/controku/issues"
+
+[project.gui-scripts]
+controku = "controku.main:main"
+
+[tool.setuptools.packages.find]
+include = ["controku*"]
+
+[tool.setuptools.package-data]
+controku = ["images/controku.png", "images/hicolor/scalable/actions/*"]
