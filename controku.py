@@ -3,8 +3,10 @@
 import gi
 import sys
 gi.require_version("Gtk", "3.0")
+from appdirs import user_cache_dir
 from gi.repository import Gtk
-from os import path
+from json import dump, load
+from os import path, makedirs
 from requests import get, post
 from ssdpy import SSDPClient
 from urllib.parse import quote
@@ -13,12 +15,21 @@ from xml.etree import ElementTree
 class Window(Gtk.Window):
     def __init__(self):
         global device_id
-        global search_id
+        global cached_devices
+        global cache_path
 
         if len(sys.argv) >= 2:
             device_id = f"http://{sys.argv[1]}:8060"
         else:
             device_id = ""
+
+        cache_path = user_cache_dir("controku", "benthetechguy")
+        makedirs(cache_path, exist_ok=True)
+        if path.isfile(path.join(cache_path, "devices.json")):
+            with open(path.join(cache_path, "devices.json")) as file:
+                cached_devices = load(file)
+        else:
+            cached_devices = []
 
         super().__init__(title="Controku")
         self.set_border_width(10)
@@ -122,22 +133,30 @@ class Window(Gtk.Window):
         button.connect("clicked", self.send_button, "VolumeUp")
         rem_grid.attach(button, 2, 6, 1, 1)
 
-        hbox = Gtk.Box(spacing=6)
-        con_grid.attach(hbox, 0, 0, 3, 1)
-
         combo = Gtk.ComboBoxText()
         combo.set_entry_text_column(0)
-        hbox.pack_start(combo, True, True, 0)
-
-        label1 = Gtk.Label()
-        con_grid.attach(label1, 0, 1, 1, 6)
-
-        label2 = Gtk.Label()
-        con_grid.attach(label2, 1, 1, 2, 6)
+        con_grid.attach(combo, 0, 1, 2, 1)
+        for device in cached_devices:
+            combo.append(device['id'], device['name'])
+        combo.set_active(0)
 
         button = Gtk.Button.new_with_label("Search for Devices")
-        search_id = button.connect("clicked", self.discover_devices, combo, label1, label2)
-        hbox.pack_start(button, True, True, 0)
+        button.connect("clicked", self.discover_devices, combo)
+        con_grid.attach(button, 0, 0, 2, 1)
+
+        button = Gtk.Button.new_with_label("Remove Device")
+        button.connect("clicked", self.remove_device, combo)
+        con_grid.attach(button, 0, 2, 2, 1)
+
+        label1 = Gtk.Label()
+        con_grid.attach(label1, 0, 3, 1, 4)
+
+        label2 = Gtk.Label()
+        con_grid.attach(label2, 1, 3, 2, 4)
+
+        button = Gtk.Button.new_with_label("Connect")
+        button.connect("clicked", self.connect_device, combo, label1, label2)
+        con_grid.attach(button, 2, 1, 1, 1)
 
     def send_button(self, button, value):
         global device_id
@@ -187,7 +206,7 @@ class Window(Gtk.Window):
             case 65288:
                 value = "Back"
             case 65307:
-                value = "Back"
+                value = "Home"
             case 104:
                 value = "Home"
             case 105:
@@ -216,29 +235,54 @@ class Window(Gtk.Window):
                 value = "Fwd"
             case 109:
                 value = "VolumeMute"
+            case 92:
+                value = "VolumeMute"
+            case 100:
+                value = "VolumeDown"
             case 91:
                 value = "VolumeDown"
+            case 117:
+                value = "VolumeUp"
             case 93:
                 value = "VolumeUp"
 
         self.send_button(self, value)
 
-    def discover_devices(self, button, combo, label1, label2):
-        global search_id
+    def discover_devices(self, button, combo):
+        global cached_devices
+        global cache_path
         search = SSDPClient().m_search("roku:ecp")
 
         devices = {}
         for device in search:
-            id = device['location']
+            id = device['location'][:-1]
             info = get(id + "/query/device-info").text
             tree = ElementTree.fromstring(info)
             name = tree.findtext('user-device-name')
             print(f"Found {name} at {id[7:-6]}")
-            combo.append(id, name)
+
+            if {"name": name, "id": id} not in cached_devices:
+                cached_devices.append({"name": name, "id": id})
+                combo.append(id, name)
+
         combo.set_active(0)
-        button.set_label("Connect")
-        button.disconnect(search_id)
-        button.connect("clicked", self.connect_device, combo, label1, label2)
+        with open(path.join(cache_path, "devices.json"), "w") as file:
+            dump(cached_devices, file)
+
+    def remove_device(self, button, combo):
+        global cached_devices
+        global cache_path
+
+        for i in range(len(cached_devices)):
+            if cached_devices[i]['name'] == combo.get_active_text() and cached_devices[i]['id'] == combo.get_active_id():
+                del cached_devices[i]
+                print(f"Removed {combo.get_active_text()} from list")
+                break
+        with open(path.join(cache_path, "devices.json"), "w") as file:
+            dump(cached_devices, file)
+
+        combo.remove(combo.get_active())
+        combo.set_active(0)
 
     def connect_device(self, button, combo, label1, label2):
         global device_id
@@ -252,15 +296,13 @@ class Window(Gtk.Window):
         print(f"Connected to {list['IP Address']} ({list['Name']})")
         list['Model'] = tree.findtext('friendly-model-name')
         list['Serial Number'] = tree.findtext('serial-number')
-        list['Resolution'] = tree.findtext('ui-resolution')
-        list['Software'] = tree.findtext('software-version')
         if tree.findtext('power-mode') == "Ready":
             list['Power'] = "Off"
         elif tree.findtext('power-mode') == "PowerOn":
             list['Power'] = "On"
 
-        string1 = "\n\n"
-        string2 = "\n\n"
+        string1 = "\n"
+        string2 = "\n"
         for thing in list:
             string1 += f"<b>{thing}:</b>\n"
             string2 += list[thing] + "\n"
