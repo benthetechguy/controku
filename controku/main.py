@@ -1,3 +1,4 @@
+import controku
 import gi
 import sys
 gi.require_version("Gtk", "3.0")
@@ -5,21 +6,18 @@ from appdirs import user_cache_dir
 from gi.repository import Gtk
 from json import dump, load
 from os import path, makedirs
-from requests import get, post
-from ssdpy import SSDPClient
 from urllib.parse import quote
-from xml.etree import ElementTree
 
 class Window(Gtk.Window):
     def __init__(self):
-        global device_id
+        global device_ip
         global cached_devices
         global cache_path
 
         if len(sys.argv) >= 2:
-            device_id = f"http://{sys.argv[1]}:8060"
+            device_ip = sys.argv[1]
         else:
-            device_id = ""
+            device_ip = ""
 
         cache_path = user_cache_dir("controku", "benthetechguy")
         makedirs(cache_path, exist_ok=True)
@@ -44,7 +42,7 @@ class Window(Gtk.Window):
         con_grid = Gtk.Grid()
         rem_grid = Gtk.Grid()
         rem_grid.connect("key-press-event", self.keypress)
-        if device_id == "":
+        if device_ip == "":
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             self.add(vbox)
 
@@ -135,7 +133,7 @@ class Window(Gtk.Window):
         combo.set_entry_text_column(0)
         con_grid.attach(combo, 0, 1, 2, 1)
         for device in cached_devices:
-            combo.append(device['id'], device['name'])
+            combo.append(device['ip'], device['name'])
         combo.set_active(0)
 
         button = Gtk.Button.new_with_label("Search for Devices")
@@ -157,38 +155,29 @@ class Window(Gtk.Window):
         con_grid.attach(button, 2, 1, 1, 1)
 
     def send_button(self, button, value):
-        global device_id
-        if device_id == "":
+        global device_ip
+        if device_ip == "":
             dialog = Dialog(self)
             dialog.run()
             dialog.destroy()
             return
 
-        post(device_id + "/keypress/" + value)
+        controku.send_key(device_ip, value)
         print("Sent " + value)
 
     def power(self, button):
-        global device_id
-        if device_id == "":
+        global device_ip
+        if device_ip == "":
             dialog = Dialog(self)
             dialog.run()
             dialog.destroy()
             return
 
-        info = get(device_id + "/query/device-info").text
-        tree = ElementTree.fromstring(info)
-        mode = tree.findtext('power-mode')
-        match mode:
-            case "Ready":
-                self.send_button(button, "PowerOn")
-            case "PowerOn":
-                self.send_button(button, "PowerOff")
-            case _:
-                print("Current power status not supported!")
+        controku.toggle_power(device_ip)
 
     def keyboard(self, button):
-        global device_id
-        if device_id == "":
+        global device_ip
+        if device_ip == "":
             dialog = Dialog(self)
             dialog.run()
             dialog.destroy()
@@ -249,19 +238,13 @@ class Window(Gtk.Window):
     def discover_devices(self, button, combo):
         global cached_devices
         global cache_path
-        search = SSDPClient().m_search("roku:ecp")
 
-        devices = {}
-        for device in search:
-            id = device['location'][:-1]
-            info = get(id + "/query/device-info").text
-            tree = ElementTree.fromstring(info)
-            name = tree.findtext('user-device-name')
-            print(f"Found {name} at {id[7:-6]}")
-
-            if {"name": name, "id": id} not in cached_devices:
-                cached_devices.append({"name": name, "id": id})
-                combo.append(id, name)
+        devices = controku.discover_devices()
+        for device in devices:
+            print(f"Found {device['name']} at {device['ip']}")
+            if device not in cached_devices:
+                cached_devices.append(device)
+                combo.append(device['ip'], device['name'])
 
         combo.set_active(0)
         with open(path.join(cache_path, "devices.json"), "w") as file:
@@ -272,7 +255,7 @@ class Window(Gtk.Window):
         global cache_path
 
         for i in range(len(cached_devices)):
-            if cached_devices[i]['name'] == combo.get_active_text() and cached_devices[i]['id'] == combo.get_active_id():
+            if cached_devices[i]['name'] == combo.get_active_text() and cached_devices[i]['ip'] == combo.get_active_id():
                 del cached_devices[i]
                 print(f"Removed {combo.get_active_text()} from list")
                 break
@@ -283,21 +266,20 @@ class Window(Gtk.Window):
         combo.set_active(0)
 
     def connect_device(self, button, combo, label1, label2):
-        global device_id
-        device_id = combo.get_active_id()
-        info = get(device_id + "/query/device-info").text
-        tree = ElementTree.fromstring(info)
+        global device_ip
+        device_ip = combo.get_active_id()
 
+        info = controku.get_device(device_ip)
         list = {}
-        list['Name'] = tree.findtext('user-device-name')
-        list['IP Address'] = device_id[7:-6]
-        print(f"Connected to {list['IP Address']} ({list['Name']})")
-        list['Model'] = tree.findtext('friendly-model-name')
-        list['Serial Number'] = tree.findtext('serial-number')
-        if tree.findtext('power-mode') == "Ready":
-            list['Power'] = "Off"
-        elif tree.findtext('power-mode') == "PowerOn":
+        list['Name'] = info['name']
+        list['IP Address'] = info['ip']
+        print(f"Connected to {info['name']} ({info['ip']})")
+        list['Model'] = info['model']
+        list['Serial Number'] = info['serial']
+        if info['power'] == True:
             list['Power'] = "On"
+        elif info['power'] == False:
+            list['Power'] = "Off"
 
         string1 = "\n"
         string2 = "\n"

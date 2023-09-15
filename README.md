@@ -1,7 +1,7 @@
 ![Banner](images/controku-banner.png#gh-dark-mode-only)
 ![Banner](images/controku-banner-inverted.png#gh-light-mode-only)
-Controku allows you to control Roku devices from your own desktop with
-a slick GTK3 interface, written in Python.
+Controku is a library and GTK3 application that allows you to control
+Roku devices from the comfort of your own desktop.
 
 ![Remote UI](images/remote.png#gh-dark-mode-only)
 ![Remote UI](images/remote-light.png#gh-light-mode-only)
@@ -9,9 +9,9 @@ a slick GTK3 interface, written in Python.
 ![Connection UI](images/connect-light.png#gh-light-mode-only)
 
 ## Dependencies
-* PyGObject
+* PyGObject (GUI only)
+* [appdirs](https://github.com/ActiveState/appdirs) (GUI only)
 * requests
-* [appdirs](https://github.com/ActiveState/appdirs)
 * [SSDPy](https://github.com/MoshiBin/ssdpy)
 
 ### Note for Windows users
@@ -21,7 +21,7 @@ that make device discovery impossible on the platform. Windows users
 will need to place the Roku's IP address in the command line arguments,
 or manually add the device to the cache at
 `C:\Users\username\AppData\Local\benthetechguy\controku\Cache\devices.json`
-with the syntax `[{'name': 'device name here', 'id': 'http://ip-here:8060'}]`.
+with the syntax `[{'name': 'device name here', 'ip': 'ip address here'}]`.
 
 ## Keyboard Control
 Instead of just using the mouse, you also can press the following keys:
