@@ -62,35 +62,14 @@ def get_device(ip: str) -> dict:
     device['model'] = tree.findtext('friendly-model-name')
     device['serial'] = tree.findtext('serial-number')
     device['udn'] = tree.findtext('udn')
-
-    if tree.findtext('is-tv') == "true":
-        device['tv'] = True
-    else:
-        device['tv'] = False
-
-    if tree.findtext('is-stick') == "true":
-        device['stick'] = True
-    else:
-        device['stick'] = False
-
     device['resolution'] = tree.findtext('ui-resolution')
     device['mac'] = tree.findtext('wifi-mac')
     device['software'] = tree.findtext('software-version')
-
-    if tree.findtext('developer-enabled') == "true":
-        device['devmode'] = True
-    else:
-        device['devmode'] = False
-
-    if tree.findtext('supports-private-listening') == "true":
-        device['netsound'] = True
-    else:
-        device['netsound'] = False
-
-    if tree.findtext('headphones-connected') == "true":
-        device['headphones'] = True
-    else:
-        device['headphones'] = False
+    device['tv'] = tree.findtext('is-tv') == "true"
+    device['stick'] = tree.findtext('is-stick') == "true"
+    device['devmode'] = tree.findtext('developer-enabled') == "true"
+    device['netsound'] = tree.findtext('supports-private-listening') == "true"
+    device['headphones'] = tree.findtext('headphones-connected') == "true"
 
     return device
 
@@ -213,8 +192,7 @@ def get_tv_channels(ip: str) -> list:
         raise ConnectionError("Couldn't connect to Roku device at {ip}.")
 
     infotree = ElementTree.fromstring(info)
-    tv = infotree.findtext('is-tv')
-    if tv == "false":
+    if infotree.findtext('is-tv') != "true":
         raise ValueError("This Roku device is not a TV.")
 
     try:
@@ -257,8 +235,7 @@ def get_active_tv_channel(ip: str) -> dict:
         raise ConnectionError("Couldn't connect to Roku device at {ip}.")
 
     infotree = ElementTree.fromstring(info)
-    tv = infotree.findtext('is-tv')
-    if tv == "false":
+    if infotree.findtext('is-tv') != "true":
         raise ValueError("This Roku device is not a TV.")
 
     try:
@@ -274,11 +251,7 @@ def get_active_tv_channel(ip: str) -> dict:
     channel['channel'] = tree.findtext('physical-channel')
     channel['hidden'] = tree.findtext('user-hidden')
     channel['favorite'] = tree.findtext('user-favorite')
-
-    if tree.findtext('active-input') == "true":
-        channel['active'] = True
-    else:
-        channel['active'] = False
+    channel['active'] = tree.findtext('active-input') == "true"
 
     match tree.findtext('signal-state'):
         case "valid":
@@ -290,10 +263,6 @@ def get_active_tv_channel(ip: str) -> dict:
     channel['title'] = tree.findtext('program-title')
     channel['description'] = tree.findtext('program-description')
     channel['rating'] = tree.findtext('program-ratings')
-
-    if tree.findtext('program-has-cc') == "true":
-        channel['captions'] = True
-    else:
-        channel['captions'] = False
+    channel['captions'] = tree.findtext('program-has-cc') == "true"
 
     return channel

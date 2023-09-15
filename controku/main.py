@@ -192,6 +192,8 @@ class Window(Gtk.Window):
         match key.keyval:
             case 65288:
                 value = "Back"
+            case 98:
+                value = "Back"
             case 65307:
                 value = "Home"
             case 104:
@@ -200,11 +202,19 @@ class Window(Gtk.Window):
                 value = "Info"
             case 65361:
                 value = "Left"
+            case 97:
+                value = "Left"
             case 65362:
+                value = "Up"
+            case 119:
                 value = "Up"
             case 65363:
                 value = "Right"
+            case 100:
+                value = "Right"
             case 65364:
+                value = "Down"
+            case 115:
                 value = "Down"
             case 65293:
                 value = "Select"
@@ -212,25 +222,31 @@ class Window(Gtk.Window):
                 value = "Select"
             case 111:
                 value = "Select"
-            case 115:
-                value = "Select"
             case 114:
                 value = "Rev"
-            case 112:
-                value = "Play"
+            case 44:
+                value = "Rev"
             case 102:
                 value = "Fwd"
+            case 46:
+                value = "Fwd"
+            case 112:
+                value = "Play"
+            case 47:
+                value = "Play"
             case 109:
                 value = "VolumeMute"
             case 92:
                 value = "VolumeMute"
-            case 100:
-                value = "VolumeDown"
             case 91:
                 value = "VolumeDown"
-            case 117:
-                value = "VolumeUp"
+            case 45:
+                value = "VolumeDown"
             case 93:
+                value = "VolumeUp"
+            case 61:
+                value = "VolumeUp"
+            case 43:
                 value = "VolumeUp"
 
         self.send_button(self, value)

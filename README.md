@@ -18,32 +18,30 @@ Roku devices from the comfort of your own desktop.
 SSDPy, the library used to discover Roku devices on the local network,
 has [problems on Windows](https://github.com/MoshiBin/ssdpy/issues/82)
 that make device discovery impossible on the platform. Windows users
-will need to place the Roku's IP address in the command line arguments,
-or manually add the device to the cache at
+will need to use the Roku device's IP address as a command line
+argument, or manually add it to the cache at
 `C:\Users\username\AppData\Local\benthetechguy\controku\Cache\devices.json`
 with the syntax `[{'name': 'device name here', 'ip': 'ip address here'}]`.
 
 ## Keyboard Control
 Instead of just using the mouse, you also can press the following keys:
 
-| Key on keyboard       | Key sent to Roku device |
-| --------------------- | ----------------------- |
-| Backspace             | Back                    |
-| I                     | Info                    |
-| Escape or H           | Home                    |
-| Up arrow              | Up                      |
-| Down arrow            | Down                    |
-| Left arrow            | Left                    |
-| Right arrow           | Right                   |
-| Enter, Space, O, or S | Select/OK               |
-| R                     | Rewind                  |
-| F                     | Fast Forward            |
-| P                     | Play/Pause              |
-| U or ]                | Volume Up               |
-| D or [                | Volume Down             |
-| M or \                | Mute                    |
+| Key on keyboard    | Key sent to Roku device |
+| ------------------ | ----------------------- |
+| Backspace or B     | Back                    |
+| I                  | Info                    |
+| Escape or H        | Home                    |
+| WASD or arrow keys | Up, Down, Left, Right   |
+| Enter, Space, or O | Select/OK               |
+| , or R             | Rewind                  |
+| . or F             | Fast Forward            |
+| / or P             | Play/Pause              |
+| [ or -             | Volume Down             |
+| ] or +             | Volume Up               |
+| \ or M             | Mute                    |
 
-**Note**: The arrow keys highlight different buttons in the GUI, and
-pressing enter or space can activate one of them. To prevent the
-activation of an unintended button like power or home, it's recommended
-to use O or S for Select/OK instead of enter or space.
+**Note**: Using the arrow keys unintentionally highlights different
+buttons in the GUI, and pressing enter or space can activate one of
+them. To prevent the activation of an unintended button like power or
+home, it's recommended to instead use WASD for direction buttons and/or
+use the O key for Select/OK.
