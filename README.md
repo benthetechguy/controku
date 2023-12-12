@@ -8,6 +8,13 @@ Roku devices from the comfort of your own desktop.
 ![Connection UI](images/connect.png#gh-dark-mode-only)
 ![Connection UI](images/connect-light.png#gh-light-mode-only)
 
+## Install
+There are binaries available in [releases](https://github.com/benthetechguy/controku/releases)
+for Windows and macOS. Linux users can install PyGObject (package name is usually some variation
+of `python3-gobject`) then install Controku with pip. Controku is also available in the
+[AUR](https://aur.archlinux.org/packages/controku) and in [this](https://apt.benthetechguy.net)
+Debian repo.
+
 ## Dependencies
 * PyGObject (GUI only)
 * [appdirs](https://github.com/ActiveState/appdirs) (GUI only)
