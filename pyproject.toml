@@ -30,7 +30,7 @@ keywords = ["roku", "remote"]
 [project.optional-dependencies]
 gui = [
     "PyGObject",
-    "appdirs",
+    "platformdirs",
 ]
 
 [project.urls]

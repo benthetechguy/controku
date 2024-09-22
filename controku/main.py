@@ -2,10 +2,10 @@ import controku
 import gi
 import sys
 gi.require_version("Gtk", "3.0")
-from appdirs import user_cache_dir
 from gi.repository import Gtk
 from json import dump, load
 from os import path, makedirs
+from platformdirs import user_cache_dir
 from urllib.parse import quote
 
 class Window(Gtk.Window):

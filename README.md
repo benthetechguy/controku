@@ -17,7 +17,7 @@ Debian repo.
 
 ## Dependencies
 * PyGObject (GUI only)
-* [appdirs](https://github.com/ActiveState/appdirs) (GUI only)
+* [platformdirs](https://github.com/tox-dev/platformdirs) (GUI only)
 * requests
 * [SSDPy](https://github.com/MoshiBin/ssdpy)
 
