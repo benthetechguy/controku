@@ -1,6 +1,6 @@
 ![Banner](images/controku-banner.png#gh-dark-mode-only)
 ![Banner](images/controku-banner-inverted.png#gh-light-mode-only)
-Controku is a library and GTK3 application that allows you to control
+Controku is a cross-platform application that allows you to control
 Roku devices from the comfort of your own desktop.
 
 ![Remote UI](images/remote.png#gh-dark-mode-only)
