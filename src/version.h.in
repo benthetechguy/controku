@@ -1,0 +1,2 @@
+#pragma once
+#define VERSION "@controku_VERSION_MAJOR@.@controku_VERSION_MINOR@.@controku_VERSION_PATCH@"

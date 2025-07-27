@@ -6,5 +6,5 @@ Comment=Control Roku devices from the comfort of your own desktop
 Exec=controku
 Icon=controku
 Terminal=false
-Categories=AudioVideo;TV;GTK;
+Categories=AudioVideo;TV;Qt;
 Keywords=Roku;Remote;Control;TV;
